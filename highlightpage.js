@@ -138,46 +138,48 @@ function undo() {
 };
 
 function htmlsearch(lostboy, context){
-    var ctxj = 0;
+    var ctxj;
     for (var ctxi = 0; ctxi < context.length - lostboy.length; ctxi++) {
 
         if (ctxi > (context.length - lostboy.length)){
             return -1;
         }
 
+        if (context[ctxi] !== lostboy[0])
+        {
+            continue;
+        }
+
         ctxj = ctxi;
-        for (var lbi = 0; lbi < lostboy.length; lbi++) {
+        for (var lbi = 0; lbi < lostboy.length; lbi++, ctxj++) {
             if (!lostboy[lbi].trim()){
+               ctxj--;
                continue;
             }
             var stuck = true;
             while (stuck){
                 stuck = false;
-                if (!context[ctxi].trim()){
-                   ctxi++;
+                if (!context[ctxj].trim()){
+                   ctxj++;
                    stuck = true;
                    continue;
                 }
-                console.log("&", context[ctxi + lbi])
-                if (context[ctxi + lbi] == '<'){
-                    console.log("*", context[ctxi + lbi])
+                if (context[ctxj] == '<'){
                     stuck = true;
-                    while(context[ctxi+lbi] != '>'){
-                        console.log("**"+context[ctxi + lbi])
-                        ctxi++;
+                    while(context[ctxj] != '>'){
+                        ctxj++;
                     }
+                    ctxj++;
                 }
             }
-            console.log(lostboy[lbi], context[ctxi + lbi])
-            if (context[ctxi + lbi] != lostboy[lbi]) {
+            if (context[ctxj] != lostboy[lbi]) {
                 break;
             }
         }
         if (lbi == lostboy.length){
-            return [ctxj, ctxi+lbi];  // found at ctxi
+            return [ctxi, ctxj];  // found at ctxi
         }
     }
     return -1;
 };
-
   // htmlsearch("Grund zur Moderation.", " Grund zur<br>Moderation.  ");
