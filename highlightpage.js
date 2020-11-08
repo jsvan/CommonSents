@@ -10,13 +10,13 @@ alltaglocs = []
 
 function setprevContextStart(num){
     prevContextStart = num;
-    console.log("prevCon set to ", prevContextStart);
+    console.log("prevConStrt set to ", prevContextStart);
 }
 
 function setprevContextEnd(num){
     prevContextEnd = num;
-    console.log("prevCon set to ", prevContextEnd);
-    console.log("Context now [" + document.body.innerHTML.substring(prevContextStart, prevContextEnd) + "]");
+    console.log("prevConEnd set to ", prevContextEnd);
+    console.log("Contextstrt-end now [" + document.body.innerHTML.substring(prevContextStart, prevContextEnd) + "]");
 }
 
 chrome.runtime.onMessage.addListener(
@@ -42,6 +42,7 @@ chrome.runtime.onMessage.addListener(
     } else {
         console.log(request.action + " not found.");
     }
+    console.log("Contextstrt-end now [" + document.body.innerHTML.substring(prevContextStart, prevContextEnd) + "]");
   });
 
 
@@ -71,12 +72,14 @@ function revertscreen(color){
 function markS(color){
     var builtstring = " <mark id=\"JSVCS\" style=\"background-color:" + color + "\"> ";
     setprevContextEnd(prevContextEnd + builtstring.length)
+    console.log("strtmark len", builtstring.length)
     return [builtstring, builtstring.length];
 };
 
 function markE(){
     var builtstring = " </mark> ";
     setprevContextEnd(prevContextEnd + builtstring.length)
+    console.log("endmark len", builtstring.length)
     return [builtstring, builtstring.length];
 };
 
@@ -98,6 +101,7 @@ function addContext(highlighted){
 
     document.body.innerHTML = newbody;
     alltaglocs.push([ [start, start+smark[1] ] ,[ end+smark[1], end+smark[1]+emark[1]] ])
+
 };
 
 function addCol(highlighted, color){
@@ -105,8 +109,11 @@ function addCol(highlighted, color){
     console.log("finding " + highlighted + " on indexes " + prevContextStart.toString() + " : " + prevContextEnd.toString() + " in ["+
                 body.substring(prevContextStart, prevContextEnd) + "] .")
     var offsets = htmlsearch(highlighted, body.substring(prevContextStart, prevContextEnd));
+    console.log("offsets ", offsets);
     var start = prevContextStart + offsets[0];
     var end = start + offsets[1];
+    console.log("start end ", start, end);
+
     var smark = markS(color);
     var emark = markE();
     var newbody = body.substring(0, start) + smark[0] + body.substring(start, end) + emark[0] + body.substring(end);
@@ -139,21 +146,31 @@ function undo() {
 
 function htmlsearch(lostboy, context){
     var ctxj;
+
+    // for each letter in context
     for (var ctxi = 0; ctxi < context.length - lostboy.length; ctxi++) {
         if (ctxi > (context.length - lostboy.length)){
             return -1;
         }
+
+        // if first letters aren't the same, continue to next cycle
         if (context[ctxi] !== lostboy[0]){
             continue;
         }
         ctxj = ctxi;
+
+        // for character in lostboy
         for (var lbi = 0; lbi < lostboy.length; lbi++, ctxj++) {
+
+            // make sure first isn't a whitespace
             if (!lostboy[lbi].trim()){
                ctxj--;
                continue;
             }
             var stuck = true;
-            while (stuck){
+
+            // remove all internal whitespaces and tags from context
+            while (stuck) {
                 stuck = false;
                 if (!context[ctxj].trim()){
                    ctxj++;
@@ -168,11 +185,13 @@ function htmlsearch(lostboy, context){
                     ctxj++;
                 }
             }
+
             if (context[ctxj] != lostboy[lbi]) {
                 break;
             }
         }
         if (lbi == lostboy.length){
+            console.log([ctxi, ctxj])
             return [ctxi, ctxj];  // found at ctxi
         }
     }

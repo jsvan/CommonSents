@@ -9,10 +9,12 @@ window.onload = load_page();
 
 function load_page() {
     if (getHighlight()) {
-        document.getElementById("highlight").innerHTML = "Turn Off";
+        document.getElementById("highlight").innerHTML = "On";
+        document.getElementById("highlighttext").innerHTML = "<mark>text highlighting</mark>";
     }
     else {
-        document.getElementById("highlight").innerHTML = "Turn On";
+        document.getElementById("highlight").innerHTML = "Off";
+        document.getElementById("highlighttext").innerHTML = "text highlighting";
     }
 
     var wealth = getLS("WEALTH");
@@ -83,14 +85,13 @@ function submitSurvey() {
 
 // switches text highlighting on or off
 function toggleHighlight() {
-    if (getHighlight())
-    {
-        document.getElementById("highlight").innerHTML = "Turn On";
+    if (getHighlight()) {  // OFF state
+        document.getElementById("highlight").innerHTML = "Off";
+        document.getElementById("highlighttext").innerHTML = "text highlighting";
         setLS("highlight", "0")
-    }
-    else
-    {
-        document.getElementById("highlight").innerHTML = "Turn Off";
+    } else {  // ON state
+        document.getElementById("highlight").innerHTML = "On";
+        document.getElementById("highlighttext").innerHTML = "<mark>text highlighting</mark>";
         setLS("highlight", "1")
     }
 }
