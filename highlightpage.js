@@ -198,3 +198,71 @@ function htmlsearch(lostboy, context){
     return -1;
 };
   // htmlsearch("Grund zur Moderation.", " Grund zur<br>Moderation.  ");
+
+
+
+
+function searchinner(lostboy, context){
+    console.log("before1", lostboy);
+    console.log("before2", context);
+
+    if (!lostboy) {
+        return 1;
+    }
+    if (!context) {
+        return -1;
+    }
+    var i = 0;
+    var stuck = true;
+    while(stuck) {
+        if (i > context.length)
+            return -1;
+
+        stuck = false;
+        if (/\s/.test(context[i])) {
+            stuck = true;
+            i += 1;
+        }
+        if (context[i] == '<') {
+            while (context[i] != '>') {
+                stuck = true;
+                i+=1;
+            }
+        i += 1;
+        }
+    }
+
+    if (lostboy[0] === context[i]){
+        console.log("after1", lostboy);
+        console.log("after2", context);
+
+        ret = searchinner(lostboy.substring(1), context.substring(i+1));
+        if (ret == -1){
+            console.log("ret was -1");
+            return -1;
+        } else {
+            return ret + 1 + i;
+        }
+    }
+    console.log("failed "+ lostboy[0]+ " !="+ context[i] ) ;
+    return -1;
+}
+
+
+function htmlsearchRecursive(lostboy, context) {
+    lostboy = lostboy.replace(/\s/g,'');
+    for (var cc = 0; cc < context.length; cc++){
+        if (lostboy[0] == context[cc]) {
+            console.log('START', lostboy[0], context[cc]);
+            var ret = searchinner(lostboy.substring(1), context.substring(cc+1));
+            if (ret == -1){
+                continue
+            } else {
+                console.log(context.substring(cc, cc+ret))
+                return [cc, cc+ret];
+            }
+        }
+    }
+    return -1;
+}
+
