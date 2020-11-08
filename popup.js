@@ -3,31 +3,43 @@ document.getElementById("storage").addEventListener("click", openPrintPage);
 document.getElementById("instructions").addEventListener("click", openInstructionsPage);
 document.getElementById("privacypolicy").addEventListener("click", openPrivacyPage);
 document.getElementById("editsurvey").addEventListener("click", expandSurvey);
+document.getElementById("highlight").addEventListener("click", toggleHighlight); 
+window.onload = load_page();
 
-var wealth = getLS("WEALTH");
-var nationalism = getLS("NATIONALISM");
-var country = getLS("COUNTRY");
-var identity = getLS("GROUP_IDENTITY");
 
-if (wealth) {
-    document.getElementsByName("wealth")[wealth - 1].checked = "checked";
-}
+function load_page() {
+    if (getHighlight()) {
+        document.getElementById("highlight").innerHTML = "Turn Off";
+    }
+    else {
+        document.getElementById("highlight").innerHTML = "Turn On";
+    }
 
-if (nationalism) {
-    document.getElementsByName("nationalism")[nationalism - 1].checked = "checked";
-}
+    var wealth = getLS("WEALTH");
+    var nationalism = getLS("NATIONALISM");
+    var country = getLS("COUNTRY");
+    var identity = getLS("GROUP_IDENTITY");
 
-if (country) {
-    document.getElementById("country").value = country;
-}
+    if (wealth) {
+        document.getElementsByName("wealth")[wealth - 1].checked = "checked";
+    }
 
-if (identity) {
-    document.getElementsByName("group_identity")[identity - 1].checked = "checked";
-}
+    if (nationalism) {
+        document.getElementsByName("nationalism")[nationalism - 1].checked = "checked";
+    }
 
-if (wealth && nationalism && country && identity) {
-    document.getElementById("survey").style.display = "none";
-    document.getElementById("collapsed").style.display = "block";
+    if (country) {
+        document.getElementById("country").value = country;
+    }
+
+    if (identity) {
+        document.getElementsByName("group_identity")[identity - 1].checked = "checked";
+    }
+
+    if (wealth && nationalism && country && identity) {
+        document.getElementById("survey").style.display = "none";
+        document.getElementById("collapsed").style.display = "block";
+    }
 }
 
 // Stores a user's answers to the popup questions in LS
@@ -69,6 +81,20 @@ function submitSurvey() {
     document.getElementById("collapsed").style.display = "block";
 }
 
+// switches text highlighting on or off
+function toggleHighlight() {
+    if (getHighlight())
+    {
+        document.getElementById("highlight").innerHTML = "Turn On";
+        setLS("highlight", "0")
+    }
+    else
+    {
+        document.getElementById("highlight").innerHTML = "Turn Off";
+        setLS("highlight", "1")
+    }
+}
+
 function expandSurvey() {
     document.getElementById("survey").style.display = "block";
     document.getElementById("collapsed").style.display = "none";
@@ -96,4 +122,8 @@ function getLS(key) {
 
 function rmLS(key) {
     localStorage.removeItem("senti_" + key);
+}
+
+function getHighlight() {
+    return parseInt(getLS("highlight"));
 }

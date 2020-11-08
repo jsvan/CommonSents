@@ -4,10 +4,17 @@ var debug = true;
 var SURVEY_KEYS = ["COUNTRY", "WEALTH", "GROUP_IDENTITY", "NATIONALISM"];
 var PREFIX = "senti_";
 
+setLS("sentiCount", "0");
+// highlighting is on by default
+setLS("highlight", "1");
+
 function sendHighlight(actiontosend, highlightedtosend){
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {action: actiontosend, highlighted:highlightedtosend});
-    });
+    if (getHighlight())
+    {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, {action: actiontosend, highlighted:highlightedtosend});
+        })
+    }
 };
 
 function updateMenuItem(id, newtitle){
@@ -19,8 +26,6 @@ function setLS(key, val) {
     localStorage[PREFIX + key] = val;
 }
 
-setLS("sentiCount", "0");
-
 function getLS(key) {
     return localStorage[PREFIX + key];
 }
@@ -31,6 +36,10 @@ function rmLS(key) {
 
 function getCount() {
     return parseInt(getLS("sentiCount"));
+}
+
+function getHighlight() {
+    return parseInt(getLS("highlight"));
 }
 
 function dprint(words){
@@ -45,8 +54,6 @@ function setneu(info) {
     sendHighlight("neu", highlighted)
     setSent(highlighted, "NEU");
 };
-
-
 
 function setneg(info) {
     highlighted = info.selectionText.trim();
