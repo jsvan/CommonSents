@@ -136,3 +136,48 @@ function undo() {
     document.body.innerHTML = newbody;
     setprevContextEnd(prevContextEnd - (first[1]-first[0]) - (second[1] - second[0]));
 };
+
+function htmlsearch(lostboy, context){
+    var ctxj = 0;
+    for (var ctxi = 0; ctxi < context.length - lostboy.length; ctxi++) {
+
+        if (ctxi > (context.length - lostboy.length)){
+            return -1;
+        }
+
+        ctxj = ctxi;
+        for (var lbi = 0; lbi < lostboy.length; lbi++) {
+            if (!lostboy[lbi].trim()){
+               continue;
+            }
+            var stuck = true;
+            while (stuck){
+                stuck = false;
+                if (!context[ctxi].trim()){
+                   ctxi++;
+                   stuck = true;
+                   continue;
+                }
+                console.log("&", context[ctxi + lbi])
+                if (context[ctxi + lbi] == '<'){
+                    console.log("*", context[ctxi + lbi])
+                    stuck = true;
+                    while(context[ctxi+lbi] != '>'){
+                        console.log("**"+context[ctxi + lbi])
+                        ctxi++;
+                    }
+                }
+            }
+            console.log(lostboy[lbi], context[ctxi + lbi])
+            if (context[ctxi + lbi] != lostboy[lbi]) {
+                break;
+            }
+        }
+        if (lbi == lostboy.length){
+            return [ctxj, ctxi+lbi];  // found at ctxi
+        }
+    }
+    return -1;
+};
+
+  // htmlsearch("Grund zur Moderation.", " Grund zur<br>Moderation.  ");
