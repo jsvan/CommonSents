@@ -84,8 +84,7 @@ function addContext(highlighted){
     var body = document.body.innerHTML;
     console.log("CONTEXT finding [" + highlighted + "]");
     try{
-        var start = body.match(highlighted).index;
-        var end = start + highlighted.length;
+        var [start, end] = htmlsearch(highlighted, body);
     } catch (e){
         alltaglocs.push([[0,0], [0,0]]);
         return;
@@ -105,8 +104,9 @@ function addCol(highlighted, color){
     var body = document.body.innerHTML;
     console.log("finding " + highlighted + " on indexes " + prevContextStart.toString() + " : " + prevContextEnd.toString() + " in ["+
                 body.substring(prevContextStart, prevContextEnd) + "] .")
-    var start = prevContextStart + body.substring(prevContextStart, prevContextEnd).match(highlighted).index;
-    var end = start + highlighted.length;
+    var offsets = htmlsearch(highlighted, body.substring(prevContextStart, prevContextEnd));
+    var start = prevContextStart + offsets[0];
+    var end = start + offsets[1];
     var smark = markS(color);
     var emark = markE();
     var newbody = body.substring(0, start) + smark[0] + body.substring(start, end) + emark[0] + body.substring(end);
@@ -140,16 +140,12 @@ function undo() {
 function htmlsearch(lostboy, context){
     var ctxj;
     for (var ctxi = 0; ctxi < context.length - lostboy.length; ctxi++) {
-
         if (ctxi > (context.length - lostboy.length)){
             return -1;
         }
-
-        if (context[ctxi] !== lostboy[0])
-        {
+        if (context[ctxi] !== lostboy[0]){
             continue;
         }
-
         ctxj = ctxi;
         for (var lbi = 0; lbi < lostboy.length; lbi++, ctxj++) {
             if (!lostboy[lbi].trim()){
