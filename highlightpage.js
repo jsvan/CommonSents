@@ -86,6 +86,7 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
         this.addedtagwidth = 0;
         this.push = function(tag, where){
             var tagstartloc = where + this.addedtagwidth + startLocOffset;
+            console.log("ADDING ", tag, " AT [", tagstartloc, tagstartloc+tag.length,"]");
             this.taglocs.push([tagstartloc, tagstartloc + tag.length]);
             this.addedtagwidth += tag.length;
         }
@@ -100,7 +101,7 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
     var inMark = true;
     for(var ch_i = 0; ch_i<mid.length; ch_i++){
         var ch = mid[ch_i];
-        if (ch === '<'){
+        if ( ch === '<' && inMark){
             inTag = true;
             finalhtmllist.push(endtag);
             taginfo.push(endtag, ch_i);
@@ -109,7 +110,11 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
             inTag = false;
         } else if (inTag || /\s/.test(ch) ) {  // if in a tag or is a whitespace
             // pass to just add it
+        } else if (ch === '<' && !inMark){
+            inTag = true;
+
         } else if (!inMark) {  //Havent begun mark yet, not inTag.
+            console.log("ADDING MARK ["+ch+"]", mid.substring(ch_i-10, ch_i+10) );
             finalhtmllist.push(starttag);
             taginfo.push(starttag, ch_i);
             inMark = true;
@@ -122,7 +127,8 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
             inMark = false;
     }
     console.log("NEW: ", finalhtmllist.join(''));
-    return [finalhtmllist.join(''), taginfo.taglocs, taginfo.addedtagwidth]
+    console.log("ALL PUSHED",endtag, taginfo.taglocs)
+    return [finalhtmllist.join(''), [taginfo.taglocs], taginfo.addedtagwidth]
 }
 
 
@@ -185,12 +191,29 @@ function addNeu(highlighted) {
 };
 
 function undo() {
+    if (!alltaglocs){
+        return;
+    }
     var body = document.body.innerHTML;
-    var endtag = alltaglocs.pop();
-    var starttag = alltaglocs.pop();
-    var newbody = body.substring(0, starttag[0]) + body.substring(starttag[1], endtag[0]) + body.substring(endtag[1]);
-    document.body.innerHTML = newbody;
-    setprevContextEnd(prevContextEnd - (starttag[1]-starttag[0]) - (endtag[1] - endtag[0]));
+    var alltagstoundo = alltaglocs.pop();
+    console.log("ATTU", alltagstoundo);
+    var htmlbuilt = [];
+    htmlbuilt.push(body.substring(0, alltagstoundo[0][0]));
+    console.log("PUSHED ", 0, alltagstoundo[0][0]);
+
+    var prevend = alltagstoundo[0][1];
+    var shrinkage = alltagstoundo[0][1] - alltagstoundo[0][0];
+    for (var t=1; t < alltagstoundo.length; t++){
+        htmlbuilt.push(body.substring(prevend, alltagstoundo[t][0]));
+        shrinkage += (alltagstoundo[t][1] - alltagstoundo[t][0]);
+        console.log("PUSHED ", prevend, alltagstoundo[t][0]);
+        prevend = alltagstoundo[t][1];
+    }
+    htmlbuilt.push(body.substring(alltagstoundo[alltagstoundo.length - 1][1]))
+    console.log("PUSHED ", alltagstoundo[alltagstoundo.length - 1][1]);
+
+    document.body.innerHTML = htmlbuilt.join('');
+    setprevContextEnd(shrinkage);
 };
 
 
