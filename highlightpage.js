@@ -73,7 +73,7 @@ function markS(color){
     var builtstring = " <mark id=\"JSVCS\" style=\"background-color:" + color + "\"> ";
     setprevContextEnd(prevContextEnd + builtstring.length)
     console.log("strtmark len", builtstring.length)
-    return [builtstring, builtstring.length];
+    return builtstring;
 };
 
 function markE(){
@@ -83,11 +83,32 @@ function markE(){
     return [builtstring, builtstring.length];
 };
 
+function highlightInside(body, starttag, endtag){
+       for(var ch_i =0; ch<body.length; ch++){
+        var ch = body[ch_i];
+
+    }
+}
+
+function highlight(color, start, end, body){
+    var prefix      = body.substring(0, start);
+    var starttag    = markS(color);
+    var mid         = body.substring(start, end);
+    var endtag      = markE();
+    var suffix      = body.substring(end);
+
+
+    // highlight everythign until you hit an end tag, and then recall this same function for substring after that tag
+    var newbody = prefix + starttag + rest + endtag + suffix
+
+
+}
+
 function addContext(highlighted){
     var body = document.body.innerHTML;
     console.log("CONTEXT finding [" + highlighted + "]");
     try{
-        var [start, end] = htmlsearch(highlighted, body);
+        var [start, end] = htmlsearchRecursive(highlighted, body);
     } catch (e){
         alltaglocs.push([[0,0], [0,0]]);
         return;
@@ -108,7 +129,7 @@ function addCol(highlighted, color){
     var body = document.body.innerHTML;
     console.log("finding " + highlighted + " on indexes " + prevContextStart.toString() + " : " + prevContextEnd.toString() + " in ["+
                 body.substring(prevContextStart, prevContextEnd) + "] .")
-    var offsets = htmlsearch(highlighted, body.substring(prevContextStart, prevContextEnd));
+    var offsets = htmlsearchRecursive(highlighted, body.substring(prevContextStart, prevContextEnd));
     console.log("offsets ", offsets);
     var start = prevContextStart + offsets[0];
     var end = start + offsets[1];
@@ -116,7 +137,7 @@ function addCol(highlighted, color){
 
     var smark = markS(color);
     var emark = markE();
-    var newbody = body.substring(0, start) + smark[0] + body.substring(start, end) + emark[0] + body.substring(end);
+    var newbody = body.substring(0, prevContextStart) + smark[0] + body.substring(start, end) + emark[0] + body.substring(prevContextEnd);
 
     alltaglocs.push([ [start, start+smark[1] ] , [ end+smark[1], end+smark[1]+emark[1] ] ])
     document.body.innerHTML = newbody;
@@ -143,6 +164,63 @@ function undo() {
     document.body.innerHTML = newbody;
     setprevContextEnd(prevContextEnd - (first[1]-first[0]) - (second[1] - second[0]));
 };
+
+
+function searchinner(lostboy, context){
+    if (!lostboy) {
+        return 1;
+    }
+    if (!context) {
+        return -1;
+    }
+    var i = 0;
+    var stuck = true;
+    while(stuck) {
+        if (i > context.length)
+            return -1;
+
+        stuck = false;
+        if (/\s/.test(context[i])) {
+            stuck = true;
+            i += 1;
+        }
+        if (context[i] == '<') {
+            while (context[i] != '>') {
+                stuck = true;
+                i+=1;
+            }
+        i += 1;
+        }
+    }
+
+    if (lostboy[0] === context[i]){
+
+        ret = searchinner(lostboy.substring(1), context.substring(i+1));
+        if (ret == -1){
+            return -1;
+        } else {
+            return ret + 1 + i;
+        }
+    }
+    return -1;
+};
+
+
+function htmlsearchRecursive(lostboy, context) {
+    lostboy = lostboy.replace(/\s/g,'');
+    for (var cc = 0; cc < context.length; cc++){
+        if (lostboy[0] == context[cc]) {
+            var ret = searchinner(lostboy.substring(1), context.substring(cc+1));
+            if (ret == -1){
+                continue
+            } else {
+                return [cc, cc+ret];
+            }
+        }
+    }
+    return -1;
+};
+
 
 function htmlsearch(lostboy, context){
     var ctxj;
@@ -200,69 +278,22 @@ function htmlsearch(lostboy, context){
   // htmlsearch("Grund zur Moderation.", " Grund zur<br>Moderation.  ");
 
 
+function test(what){
+var b = document.body.innerHTML;
 
+var t0 = performance.now();
+var res = b.search(what);
+console.log('searchn ',performance.now()-t0, " ms, ", res);
 
-function searchinner(lostboy, context){
-    console.log("before1", lostboy);
-    console.log("before2", context);
+if (res != -1) { console.log(b.substring(res, res+what.length));}
 
-    if (!lostboy) {
-        return 1;
-    }
-    if (!context) {
-        return -1;
-    }
-    var i = 0;
-    var stuck = true;
-    while(stuck) {
-        if (i > context.length)
-            return -1;
+var t0 = performance.now();
+var res = htmlsearch(what, b);
+console.log('charles ',performance.now()-t0, " ms, ", res);
+if (res[0] != -1) { console.log(b.substring(res[0], res[1]));}
 
-        stuck = false;
-        if (/\s/.test(context[i])) {
-            stuck = true;
-            i += 1;
-        }
-        if (context[i] == '<') {
-            while (context[i] != '>') {
-                stuck = true;
-                i+=1;
-            }
-        i += 1;
-        }
-    }
-
-    if (lostboy[0] === context[i]){
-        console.log("after1", lostboy);
-        console.log("after2", context);
-
-        ret = searchinner(lostboy.substring(1), context.substring(i+1));
-        if (ret == -1){
-            console.log("ret was -1");
-            return -1;
-        } else {
-            return ret + 1 + i;
-        }
-    }
-    console.log("failed "+ lostboy[0]+ " !="+ context[i] ) ;
-    return -1;
-}
-
-
-function htmlsearchRecursive(lostboy, context) {
-    lostboy = lostboy.replace(/\s/g,'');
-    for (var cc = 0; cc < context.length; cc++){
-        if (lostboy[0] == context[cc]) {
-            console.log('START', lostboy[0], context[cc]);
-            var ret = searchinner(lostboy.substring(1), context.substring(cc+1));
-            if (ret == -1){
-                continue
-            } else {
-                console.log(context.substring(cc, cc+ret))
-                return [cc, cc+ret];
-            }
-        }
-    }
-    return -1;
-}
-
+var t0 = performance.now();
+var res = htmlsearchRecursive(what,b);
+console.log('minerec ',performance.now()-t0, " ms, ", res);
+if (res[0] != -1) { console.log(b.substring(res[0], res[1]));}
+};
