@@ -138,7 +138,7 @@ function highlight(color, start, end){
     // highlight everythign until you hit an end tag, and then recall this same function for substring after that tag
     var newbody = prefix + insideresults[0] + suffix;
     alltaglocs = alltaglocs.concat(insideresults[1]);  // keep track of where you put tags
-    console.log("Changing end");
+    console.log("***Changing end***");
     setprevContextEnd(prevContextEnd);
     console.log(insideresults[2]);
     setprevContextEnd(prevContextEnd+insideresults[2]);  // lengthen new context by the mark lengths
@@ -166,7 +166,7 @@ function addCol(highlighted, color){
     var offsets = htmlsearchRecursive(highlighted, body.substring(prevContextStart, prevContextEnd));
     console.log("offsets ", offsets);
     var start = prevContextStart + offsets[0];
-    var end = start + offsets[1];
+    var end = prevContextStart + offsets[1];
     console.log("start end ", start, end);
     var newbody = highlight(color, start, end)
     document.body.innerHTML = newbody;
@@ -190,7 +190,7 @@ function undo() {
     var starttag = alltaglocs.pop();
     var newbody = body.substring(0, starttag[0]) + body.substring(starttag[1], endtag[0]) + body.substring(endtag[1]);
     document.body.innerHTML = newbody;
-    setprevContextEnd(prevContextEnd - (first[1]-first[0]) - (second[1] - second[0]));
+    setprevContextEnd(prevContextEnd - (starttag[1]-starttag[0]) - (endtag[1] - endtag[0]));
 };
 
 
