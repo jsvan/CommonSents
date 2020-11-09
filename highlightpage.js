@@ -6,6 +6,7 @@ var prevContextStart = 0;
 var prevContextEnd = 0;
 var FLASHDURATION = 50;
 var ALERTCOLOR = "red";
+var WARNINGCOLOR = "yellow";
 alltaglocs = []
 
 function setprevContextStart(num){
@@ -27,18 +28,18 @@ chrome.runtime.onMessage.addListener(
     console.log(request.action + " " + request.highlighted);
     var HL = request.highlighted.trim();
 
-    if (request.action == "con") {
+    if (request.action == "CON") {
       addContext(HL);
-    } else if (request.action == "pos"){
+    } else if (request.action == "POS"){
         addPos(HL);
-    } else if (request.action == "neu"){
+    } else if (request.action == "NEU"){
         addNeu(HL);
-    } else if (request.action == "neg"){
+    } else if (request.action == "NEG"){
         addNeg(HL);
-    } else if (request.action == "und"){
+    } else if (request.action == "UND"){
         undo();
-    } else if (request.action == "not"){
-        notify(HL);
+    } else if (request.action == "NOT"){
+        notify(ALERTCOLOR);
     } else {
         console.log(request.action + " not found.");
     }
@@ -46,31 +47,32 @@ chrome.runtime.onMessage.addListener(
   });
 
 
-function notify() {
+function notify(color) {
     var oldcolor = document.body.style.backgroundColor;
-    innernotify(oldcolor);
-    setTimeout(function() {innernotify(oldcolor)}, FLASHDURATION+60);
-    setTimeout(function() {innernotify(oldcolor)}, 2*FLASHDURATION+70);
+    innernotify(color, oldcolor);
+    setTimeout(function() {innernotify(color, oldcolor)}, FLASHDURATION+60);
+    setTimeout(function() {innernotify(color, oldcolor)}, 2*FLASHDURATION+70);
+
     setTimeout(function() {revertscreen(oldcolor)}, 3*FLASHDURATION+80);
 };
 
-function innernotify(oldcolor){
-    flashscreen();
+function innernotify(color, oldcolor){
+    flashscreen(color);
     console.log("flashed");
     setTimeout(function() {revertscreen(oldcolor)}, FLASHDURATION);
     console.log('done');
 };
 
-function flashscreen(){
-    document.body.style.backgroundColor = ALERTCOLOR;
-};
-
-function revertscreen(color){
+function flashscreen(color){
     document.body.style.backgroundColor = color;
 };
 
+function revertscreen(oldcolor){
+    document.body.style.backgroundColor = oldcolor;
+};
+
 function markS(color){
-    var builtstring = " <mark id=\"JSVCS\" style=\"background-color:" + color + "\"> ";
+    var builtstring = " <mark style=\"background-color:" + color + "\"> ";
     return builtstring;
 };
 
@@ -155,8 +157,9 @@ function addContext(highlighted){
     var [start, end] = htmlsearchRecursive(highlighted, document.body.innerHTML);
 
     if (start == -1) {
-         alltaglocs = alltaglocs.concat([[-1,-1], [-1,-1]]);
+         alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
         console.log("Search failed, pushed empty to alltaglocs");
+        notify(WARNINGCOLOR);
         console.log(alltaglocs);
         return;
     }
@@ -172,8 +175,9 @@ function addCol(highlighted, color){
     console.log("finding " + highlighted + " on indexes " + prevContextStart.toString() + " : " + prevContextEnd.toString() + " in ["+
                 body.substring(prevContextStart, prevContextEnd) + "] .")
     var offsets = htmlsearchRecursive(highlighted, body.substring(prevContextStart, prevContextEnd));
-    if (offsets[0] == -1) {
-         alltaglocs = alltaglocs.concat([[-1,-1], [-1,-1]]);
+    if (offsets[0][0] == -1) {
+         alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
+         notify(WARNINGCOLOR);
         console.log("Search failed, pushed empty to alltaglocs");
         console.log(alltaglocs);
         return;

@@ -51,21 +51,18 @@ function dprint(words){
 function setneu(info) {
     highlighted = info.selectionText.trim();
     dprint("setneu() NEU");
-    sendHighlight("neu", highlighted)
     setSent(highlighted, "NEU");
 };
 
 function setneg(info) {
     highlighted = info.selectionText.trim();
     dprint("setneg() NEG");
-    sendHighlight("neg", highlighted)
     setSent(highlighted, "NEG");
 };
 
 function setpos(info) {
     highlighted = info.selectionText.trim();
     dprint("setpos() POS");
-    sendHighlight("pos", highlighted)
     setSent(highlighted, "POS");
 };
 
@@ -73,6 +70,7 @@ function setSent(highlighted, label){
     dprint("setSent() "+ label + " : " + highlighted);
     if (existing_context.includes(highlighted)) {
         addtoLS("[" + label + "]: " + highlighted);
+        sendHighlight(label, highlighted)
      } else {
         notifyMe("Error, entity not found in context sentence.");
      }
@@ -113,7 +111,7 @@ function undo() {
             updateMenuItem("UND", "Undo: Previous");
             updateMenuItem("UND1", "Undo: Previous");
             }
-        sendHighlight("und", "");
+        sendHighlight("UND", "");
 
     } else {
         notifyMe("Nothing to undo.");
@@ -130,7 +128,7 @@ function setContext(info) {
      updateMenuItem("CON", CONTEXTTAG.substring(4) + highlighted);
      existing_context = highlighted;
      dprint("UPDATED MENU, existing_context: "+existing_context);
-     sendHighlight("con", highlighted);
+     sendHighlight("CON", highlighted);
 };
 
 function resetContext(){
@@ -164,7 +162,7 @@ function stringifyLS() {
 function notifyMe(words){
     dprint("NOTIFYING "+words);
     words = words;
-    sendHighlight("not", words);
+    sendHighlight("NOT", words);
     chrome.notifications.create(
           "id1",
           {
