@@ -83,12 +83,50 @@ function markE(){
     return [builtstring, builtstring.length];
 };
 
-function highlightInside(body, starttag, endtag){
-       for(var ch_i =0; ch<body.length; ch++){
-        var ch = body[ch_i];
 
+function highlightInside(mid, starttag, endtag){
+    function Tag(){
+        this.taglocs = [];
+        this.addedtagwidth = 0;
+        this.push = function(tag, where){
+            this.taglocs.push([where + this.addedtagwidth, tag.length]);
+            this.addedtagwidth += tag.length;
+        }
     }
+
+    var finalhtmllist = [];
+    finalhtmllist.push(starttag);
+    taginfo = new Tag();
+    taginfo.push(starttag, 0);
+
+    var inTag = false;
+    var inMark = true;
+    for(var ch_i = 0; ch_i<mid.length; ch_i++){
+        var ch = mid[ch_i];
+        if (ch === '<'){
+            inTag = true;
+            finalhtmllist.push(endtag);
+            taginfo.push(endtag, ch_i);
+            inMark = false;
+        } else if ( inTag && ch === '>') {
+            inTag = false;
+        } else if (inTag || /\s/.test(ch) ) {  // if in a tag or is a whitespace
+            // pass to just add it
+        } else if (!inMark) {  //Havent begun mark yet, not inTag.
+            finalhtmllist.push(starttag);
+            taginfo.push(starttag, ch_i);
+            inMark = true;
+        }
+        finalhtmllist.push(ch);
+    }
+    if (!inTag && inMark){
+            finalhtmllist.push(endtag);
+            taginfo.push(endtag, ch_i);
+            inMark = false;
+    }
+    return [finalhtmllist.join(''), taginfo.taglocs]
 }
+
 
 function highlight(color, start, end, body){
     var prefix      = body.substring(0, start);
@@ -99,7 +137,7 @@ function highlight(color, start, end, body){
 
 
     // highlight everythign until you hit an end tag, and then recall this same function for substring after that tag
-    var newbody = prefix + starttag + rest + endtag + suffix
+    var newbody = prefix + highlightInside + suffix
 
 
 }
