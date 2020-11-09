@@ -71,25 +71,22 @@ function revertscreen(color){
 
 function markS(color){
     var builtstring = " <mark id=\"JSVCS\" style=\"background-color:" + color + "\"> ";
-    setprevContextEnd(prevContextEnd + builtstring.length)
-    console.log("strtmark len", builtstring.length)
     return builtstring;
 };
 
 function markE(){
     var builtstring = " </mark> ";
-    setprevContextEnd(prevContextEnd + builtstring.length)
-    console.log("endmark len", builtstring.length)
-    return [builtstring, builtstring.length];
+    return builtstring;
 };
 
 
-function highlightInside(mid, starttag, endtag){
+function highlightInside(mid, starttag, endtag, startLocOffset){
     function Tag(){
         this.taglocs = [];
         this.addedtagwidth = 0;
         this.push = function(tag, where){
-            this.taglocs.push([where + this.addedtagwidth, tag.length]);
+            var tagstartloc = where + this.addedtagwidth + startLocOffset;
+            this.taglocs.push([tagstartloc, tagstartloc + tag.length]);
             this.addedtagwidth += tag.length;
         }
     }
@@ -124,43 +121,42 @@ function highlightInside(mid, starttag, endtag){
             taginfo.push(endtag, ch_i);
             inMark = false;
     }
-    return [finalhtmllist.join(''), taginfo.taglocs]
+    console.log("NEW: ", finalhtmllist.join(''));
+    return [finalhtmllist.join(''), taginfo.taglocs, taginfo.addedtagwidth]
 }
 
 
-function highlight(color, start, end, body){
-    var prefix      = body.substring(0, start);
+function highlight(color, start, end){
+    var body = document.body.innerHTML;
     var starttag    = markS(color);
-    var mid         = body.substring(start, end);
     var endtag      = markE();
+    var prefix      = body.substring(0, start);
+    var mid         = body.substring(start, end);
     var suffix      = body.substring(end);
-
+    var insideresults = highlightInside(mid, starttag, endtag, start);
 
     // highlight everythign until you hit an end tag, and then recall this same function for substring after that tag
-    var newbody = prefix + highlightInside + suffix
-
-
+    var newbody = prefix + insideresults[0] + suffix;
+    alltaglocs = alltaglocs.concat(insideresults[1]);  // keep track of where you put tags
+    console.log("Changing end");
+    setprevContextEnd(prevContextEnd);
+    console.log(insideresults[2]);
+    setprevContextEnd(prevContextEnd+insideresults[2]);  // lengthen new context by the mark lengths
+    return newbody;
 }
 
 function addContext(highlighted){
-    var body = document.body.innerHTML;
-    console.log("CONTEXT finding [" + highlighted + "]");
-    try{
-        var [start, end] = htmlsearchRecursive(highlighted, body);
-    } catch (e){
-        alltaglocs.push([[0,0], [0,0]]);
+    var [start, end] = htmlsearchRecursive(highlighted, document.body.innerHTML);
+
+    if (start == -1) {
+        alltaglocs.concat([[0,0], [0,0]]);
         return;
     }
-
+    var smark = markS(CONTEXTCOLOR);
     setprevContextStart(start);
     setprevContextEnd(end);
-    var smark = markS(CONTEXTCOLOR);
-    var emark = markE();
-    var newbody = body.substring(0, start) + smark[0] + body.substring(start, end) + emark[0] + body.substring(end);
-
+    var newbody = highlight(CONTEXTCOLOR, prevContextStart, prevContextEnd);
     document.body.innerHTML = newbody;
-    alltaglocs.push([ [start, start+smark[1] ] ,[ end+smark[1], end+smark[1]+emark[1]] ])
-
 };
 
 function addCol(highlighted, color){
@@ -172,12 +168,7 @@ function addCol(highlighted, color){
     var start = prevContextStart + offsets[0];
     var end = start + offsets[1];
     console.log("start end ", start, end);
-
-    var smark = markS(color);
-    var emark = markE();
-    var newbody = body.substring(0, prevContextStart) + smark[0] + body.substring(start, end) + emark[0] + body.substring(prevContextEnd);
-
-    alltaglocs.push([ [start, start+smark[1] ] , [ end+smark[1], end+smark[1]+emark[1] ] ])
+    var newbody = highlight(color, start, end)
     document.body.innerHTML = newbody;
 };
 
@@ -195,10 +186,9 @@ function addNeu(highlighted) {
 
 function undo() {
     var body = document.body.innerHTML;
-    var toremove = alltaglocs.pop();
-    var first = toremove[0];
-    var second = toremove[1];
-    var newbody = body.substring(0, first[0]) + body.substring(first[1], second[0]) + body.substring(second[1]);
+    var endtag = alltaglocs.pop();
+    var starttag = alltaglocs.pop();
+    var newbody = body.substring(0, starttag[0]) + body.substring(starttag[1], endtag[0]) + body.substring(endtag[1]);
     document.body.innerHTML = newbody;
     setprevContextEnd(prevContextEnd - (first[1]-first[0]) - (second[1] - second[0]));
 };
