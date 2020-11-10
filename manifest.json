@@ -1,6 +1,6 @@
 {
   "name": "Common Sents",
-  "version": "1.03",
+  "version": "1.04",
   "description": "Help Julian locate sentiment-charged sentences while you read your morning news.",
   "permissions": ["contextMenus", "activeTab", "notifications"],
   "content_scripts": [
