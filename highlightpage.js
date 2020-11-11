@@ -2,12 +2,15 @@ var CONTEXTCOLOR = "yellow"
 var NEGCOLOR = "red"
 var POSCOLOR = "lightgreen"
 var NEUCOLOR = "lightgray"
-var prevContextStart = 0;
-var prevContextEnd = 0;
-var FLASHDURATION = 50;
 var ALERTCOLOR = "red";
 var WARNINGCOLOR = "yellow";
-alltaglocs = []
+var ORIGINAL_BG_COLOR = document.body.style.backgroundColor;
+var FLASHDURATION = 50;
+var alltaglocs = []
+var prevContextStart = 0;
+var prevContextEnd = 0;
+
+
 
 function setprevContextStart(num){
     prevContextStart = num;
@@ -48,12 +51,11 @@ chrome.runtime.onMessage.addListener(
 
 
 function notify(color) {
-    var oldcolor = document.body.style.backgroundColor;
-    innernotify(color, oldcolor);
-    setTimeout(function() {innernotify(color, oldcolor)}, FLASHDURATION+60);
-    setTimeout(function() {innernotify(color, oldcolor)}, 2*FLASHDURATION+70);
+    innernotify(color, ORIGINAL_BG_COLOR);
+    setTimeout(function() {innernotify(color, ORIGINAL_BG_COLOR)}, FLASHDURATION+60);
+    setTimeout(function() {innernotify(color, ORIGINAL_BG_COLOR)}, 2*FLASHDURATION+70);
 
-    setTimeout(function() {revertscreen(oldcolor)}, 3*FLASHDURATION+80);
+    setTimeout(function() {revertscreen(ORIGINAL_BG_COLOR)}, 3*FLASHDURATION+80);
 };
 
 function innernotify(color, oldcolor){
