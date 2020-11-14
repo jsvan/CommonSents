@@ -6,7 +6,8 @@ var ALERTCOLOR = "red";
 var WARNINGCOLOR = "yellow";
 var ORIGINAL_BG_COLOR = document.body.style.backgroundColor;
 var FLASHDURATION = 50;
-var alltaglocs = []
+var alltaglocs = [];
+var NEsFoundInThisContext = new Map();
 var prevContextStart = 0;
 var prevContextEnd = 0;
 
@@ -14,23 +15,16 @@ var prevContextEnd = 0;
 
 function setprevContextStart(num){
     prevContextStart = num;
-    console.log("prevConStrt set to ", prevContextStart);
-}
+};
 
 function setprevContextEnd(num){
     prevContextEnd = num;
-    console.log("prevConEnd set to ", prevContextEnd);
-    // console.log("Contextstrt-end now [" + document.body.innerHTML.substring(prevContextStart, prevContextEnd) + "]");
-}
+};
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    console.log(sender.tab ?
-                "from a content script:" + sender.tab.url :
-                "from the extension");
     console.log(request.action + " " + request.highlighted);
-    var HL = request.highlighted.trim();
-
+    let HL = request.highlighted.trim();
     if (request.action == "CON") {
       addContext(HL);
     } else if (request.action == "POS"){
@@ -46,7 +40,6 @@ chrome.runtime.onMessage.addListener(
     } else {
         console.log(request.action + " not found.");
     }
-    // console.log("Contextstrt-end now [" + document.body.innerHTML.substring(prevContextStart, prevContextEnd) + "]");
   });
 
 
@@ -54,15 +47,12 @@ function notify(color) {
     innernotify(color, ORIGINAL_BG_COLOR);
     setTimeout(function() {innernotify(color, ORIGINAL_BG_COLOR)}, FLASHDURATION+60);
     setTimeout(function() {innernotify(color, ORIGINAL_BG_COLOR)}, 2*FLASHDURATION+70);
-
     setTimeout(function() {revertscreen(ORIGINAL_BG_COLOR)}, 3*FLASHDURATION+80);
 };
 
 function innernotify(color, oldcolor){
     flashscreen(color);
-    console.log("flashed");
     setTimeout(function() {revertscreen(oldcolor)}, FLASHDURATION);
-    console.log('done');
 };
 
 function flashscreen(color){
@@ -74,12 +64,12 @@ function revertscreen(oldcolor){
 };
 
 function markS(color){
-    var builtstring = " <mark style=\"background-color:" + color + "\"> ";
+    let builtstring = " <mark style=\"background-color:" + color + "\"> ";
     return builtstring;
 };
 
 function markE(){
-    var builtstring = " </mark> ";
+    let builtstring = " </mark> ";
     return builtstring;
 };
 
@@ -89,22 +79,21 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
         this.taglocs = [];
         this.addedtagwidth = 0;
         this.push = function(tag, where){
-            var tagstartloc = where + this.addedtagwidth + startLocOffset;
-            console.log("ADDING ", tag, " AT [", tagstartloc, tagstartloc+tag.length,"]");
+            let tagstartloc = where + this.addedtagwidth + startLocOffset;
             this.taglocs.push([tagstartloc, tagstartloc + tag.length]);
             this.addedtagwidth += tag.length;
         }
     }
 
-    var finalhtmllist = [];
+    let finalhtmllist = [];
     finalhtmllist.push(starttag);
     taginfo = new Tag();
     taginfo.push(starttag, 0);
 
-    var inTag = false;
-    var inMark = true;
+    let inTag = false;
+    let inMark = true;
     for(var ch_i = 0; ch_i<mid.length; ch_i++){
-        var ch = mid[ch_i];
+        let ch = mid[ch_i];
         if ( ch === '<' && inMark){
             inTag = true;
             finalhtmllist.push(endtag);
@@ -118,7 +107,6 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
             inTag = true;
 
         } else if (!inMark) {  //Havent begun mark yet, not inTag.
-            console.log("ADDING MARK ["+ch+"]", mid.substring(ch_i-10, ch_i+10) );
             finalhtmllist.push(starttag);
             taginfo.push(starttag, ch_i);
             inMark = true;
@@ -130,8 +118,6 @@ function highlightInside(mid, starttag, endtag, startLocOffset){
             taginfo.push(endtag, ch_i);
             inMark = false;
     }
-    console.log("NEW: ", finalhtmllist.join(''));
-    console.log("ALL PUSHED",endtag, taginfo.taglocs)
     return [finalhtmllist.join(''), [taginfo.taglocs], taginfo.addedtagwidth]
 }
 
@@ -148,9 +134,6 @@ function highlight(color, start, end){
     // highlight everythign until you hit an end tag, and then recall this same function for substring after that tag
     var newbody = prefix + insideresults[0] + suffix;
     alltaglocs = alltaglocs.concat(insideresults[1]);  // keep track of where you put tags
-    console.log("***Changing end***");
-    setprevContextEnd(prevContextEnd);
-    console.log(insideresults[2]);
     setprevContextEnd(prevContextEnd+insideresults[2]);  // lengthen new context by the mark lengths
     return newbody;
 }
@@ -160,9 +143,7 @@ function addContext(highlighted){
 
     if (start == -1) {
          alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
-        console.log("Search failed, pushed empty to alltaglocs");
         notify(WARNINGCOLOR);
-        console.log(alltaglocs);
         return;
     }
     var smark = markS(CONTEXTCOLOR);
@@ -170,26 +151,35 @@ function addContext(highlighted){
     setprevContextEnd(end);
     var newbody = highlight(CONTEXTCOLOR, prevContextStart, prevContextEnd);
     document.body.innerHTML = newbody;
+    NEsFoundInThisContext.clear();
 };
 
 function addCol(highlighted, color){
     var body = document.body.innerHTML;
-    console.log("finding " + highlighted + " on indexes " + prevContextStart.toString() + " : " + prevContextEnd.toString() + " in ["+
-                body.substring(prevContextStart, prevContextEnd) + "] .")
-    var offsets = htmlsearchRecursive(highlighted, body.substring(prevContextStart, prevContextEnd));
-    if (offsets[0][0] == -1) {
-         alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
-         notify(WARNINGCOLOR);
-        console.log("Search failed, pushed empty to alltaglocs");
-        console.log(alltaglocs);
+    var samecount = (NEsFoundInThisContext.has(highlighted)) ? NEsFoundInThisContext.get(highlighted) + 1 : 1;
+    var searchStartLoc = prevContextStart;
+    var offsets = htmlsearchRecursive(highlighted, body.substring(searchStartLoc, prevContextEnd));
+    if (offsets[0] == -1) {
+        alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
+        notify(WARNINGCOLOR);
         return;
     }
-    console.log("offsets ", offsets);
-    var start = prevContextStart + offsets[0];
-    var end = prevContextStart + offsets[1];
-    console.log("start end ", start, end);
-    var newbody = highlight(color, start, end)
+    for(var findingword=1; findingword < samecount; findingword++){
+        searchStartLoc = searchStartLoc + offsets[1];
+        offsets = htmlsearchRecursive(highlighted, body.substring(searchStartLoc, prevContextEnd));
+        if (offsets[0] == -1) {
+            alltaglocs = alltaglocs.concat([[[-1,-1], [-1,-1]]]);
+            notify(WARNINGCOLOR);
+            return;
+        }
+    }
+
+    var start = searchStartLoc + offsets[0];
+    var end = searchStartLoc + offsets[1];
+    var newbody = highlight(color, start, end);
     document.body.innerHTML = newbody;
+    NEsFoundInThisContext.set(highlighted, samecount);
+
 };
 
 function addPos(highlighted) {
@@ -214,22 +204,16 @@ function undo() {
         return;
     }
     var body = document.body.innerHTML;
-    console.log("ATTU", alltagstoundo);
     var htmlbuilt = [];
     htmlbuilt.push(body.substring(0, alltagstoundo[0][0]));
-    console.log("PUSHED ", 0, alltagstoundo[0][0]);
-
     var prevend = alltagstoundo[0][1];
     var shrinkage = alltagstoundo[0][1] - alltagstoundo[0][0];
     for (var t=1; t < alltagstoundo.length; t++){
         htmlbuilt.push(body.substring(prevend, alltagstoundo[t][0]));
         shrinkage += (alltagstoundo[t][1] - alltagstoundo[t][0]);
-        console.log("PUSHED ", prevend, alltagstoundo[t][0]);
         prevend = alltagstoundo[t][1];
     }
     htmlbuilt.push(body.substring(alltagstoundo[alltagstoundo.length - 1][1]))
-    console.log("PUSHED ", alltagstoundo[alltagstoundo.length - 1][1]);
-
     document.body.innerHTML = htmlbuilt.join('');
     setprevContextEnd(prevContextEnd - shrinkage);
 };
@@ -243,11 +227,12 @@ function searchinner(lostboy, context){
         return -1;
     }
     var i = 0;
+    var lostboyI = 0;
     var stuck = true;
     while(stuck) {
-        if (i > context.length)
+        if (i > context.length){
             return -1;
-
+        }
         stuck = false;
         if (/\s/.test(context[i])) {
             stuck = true;
@@ -258,13 +243,29 @@ function searchinner(lostboy, context){
                 stuck = true;
                 i+=1;
             }
-        i += 1;
+            i += 1;
+        }
+        // deal with &nbsp;
+        // if &thing;, then skip to the end of it in context, skip to 1 over in lostboy.
+        var badguy = []
+        if (context[i] === '&' && i+1<context.length && !/\s/.test(context[i+1])) {
+             while (context[i] != ';') {
+                badguy.push(context[i]);
+                stuck = true;
+                i+=1;
+            }
+            badguy.push(context[i]);
+            i += 1;
+            if(badguy.join('') !== '&nbsp;'){  // we took out all the spaces already from lostboy so nothing to skip over.
+                lostboyI += 1;
+            }
+
         }
     }
+    // special rule to deal with &nbsp;
 
-    if (lostboy[0] === context[i]){
-
-        ret = searchinner(lostboy.substring(1), context.substring(i+1));
+    if (lostboy[lostboyI] === context[i]){
+        ret = searchinner(lostboy.substring(lostboyI + 1), context.substring(i+1));
         if (ret == -1){
             return -1;
         } else {
@@ -290,59 +291,11 @@ function htmlsearchRecursive(lostboy, context) {
     return [-1, -1];
 };
 
-/*
-function htmlsearch(lostboy, context){
-    var ctxj;
-    for (var ctxi = 0; ctxi < context.length - lostboy.length; ctxi++) {
-        if (ctxi > (context.length - lostboy.length)){
-            return -1;
-        }
-        if (context[ctxi] !== lostboy[0]){
-            continue;
-        }
-        ctxj = ctxi;
-        for (var lbi = 0; lbi < lostboy.length; lbi++, ctxj++) {
-            if (!lostboy[lbi].trim()){
-               ctxj--;
-               continue;
-            }
-            var stuck = true;
-            while (stuck) {
-                stuck = false;
-                if (!context[ctxj].trim()){
-                   ctxj++;
-                   stuck = true;
-                   continue;
-                }
-                if (context[ctxj] == '<'){
-                    stuck = true;
-                    while(context[ctxj] != '>'){
-                        ctxj++;
-                    }
-                    ctxj++;
-                }
-            }
-            if (context[ctxj] != lostboy[lbi]) {
-                break;
-            }
-        }
-        if (lbi == lostboy.length){
-            console.log([ctxi, ctxj])
-            return [ctxi, ctxj];  // found at ctxi
-        }
-    }
-    return -1;
-};
-  // htmlsearch("Grund zur Moderation.", " Grund zur<br>Moderation.  ");
-*/
-
-function test(what){
+function testSearch(what){
 var b = document.body.innerHTML;
-
 var t0 = performance.now();
 var res = b.search(what);
 console.log('searchn ',performance.now()-t0, " ms, ", res);
-
 if (res != -1) { console.log(b.substring(res, res+what.length));}
 /*
 var t0 = performance.now();

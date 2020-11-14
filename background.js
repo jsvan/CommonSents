@@ -175,6 +175,10 @@ function notifyMe(words){
         );
 };
 
+function viewSamples(){
+    chrome.tabs.create({'url':chrome.runtime.getURL("printpage.html"), 'active':true});
+};
+
 chrome.contextMenus.create({id:"UND1", title: "Undo: Previous", contexts:["selection"], onclick:undo});
 chrome.contextMenus.create({id:"CON", title: "[CONTEXT NOT SET]", contexts:["selection"], onclick:setContext});
 chrome.contextMenus.create({id:"SET", title: "Set New Context <alt-c>", contexts:["selection"], onclick:setContext});
@@ -182,7 +186,7 @@ chrome.contextMenus.create({ id:"POS", title: "<Target is Positive> <alt-p>", co
 chrome.contextMenus.create({id:"NEU", title: "<Target is  Neutral> <alt-k>", contexts:["selection"], onclick:setneu});
 chrome.contextMenus.create({ id:"NEG", title: "<Target is Negative> <alt-n>", contexts:["selection"], onclick:setneg});
 chrome.contextMenus.create({id:"UND", title: "Undo: Previous", onclick:undo});
-chrome.contextMenus.create({id:"RES", title: "DELETE ALL SELECTIONS", onclick:deleteSelections});
+chrome.contextMenus.create({id:"SAM", title: "View your samples", onclick:viewSamples});
 
 // keyboard shortcuts
 chrome.commands.onCommand.addListener(function(command) {

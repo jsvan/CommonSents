@@ -102,15 +102,15 @@ function expandSurvey() {
 }
 
 function openPrivacyPage() {
-    chrome.tabs.create({'url':"https://jsvan.github.io/Common_Sents_Privacy_Policy.html", 'active':true})
+    chrome.tabs.create({'url':"https://jsvan.github.io/Common_Sents_Privacy_Policy.html", 'active':true});
 };
 
 function openPrintPage() {
-    chrome.tabs.create({'url':chrome.runtime.getURL("printpage.html"), 'active':true})
+    chrome.tabs.create({'url':chrome.runtime.getURL("printpage.html"), 'active':true});
 };
 
 function openInstructionsPage() {
-    chrome.tabs.create({'url':"https://jsvan.github.io/Common_Sents_Usage_Instructions.html", 'active':true})
+    chrome.tabs.create({'url':"https://jsvan.github.io/Common_Sents_Usage_Instructions.html", 'active':true});
 };
 
 function setLS(key, val) {
