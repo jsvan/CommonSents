@@ -1,12 +1,16 @@
 {
   "name": "Common Sents",
-  "version": "1.06",
+  "version": "1.07",
   "description": "Help Julian locate sentiment-charged sentences while you read your morning news.",
   "permissions": ["contextMenus", "activeTab", "notifications"],
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
       "js": ["highlightpage.js"]
+    },
+    {
+      "matches": ["https://abcnews.go.com/*/*", "https://www.msnbc.com/*/*","https://www.themoscowtimes.com/*/*", "https://www.vox.com/*/*", "https://www.foreignaffairs.com/*/*","https://www.foxnews.com/*/*","https://www.reuters.com/*/*","https://apnews.com/*/*", "https://www.ft.com/*/*", "https://www.economist.com/*/*","https://meduza.io/*/*","https://www.nytimes.com/*/*", "https://www.washingtonpost.com/*/*", "https://www.theatlantic.com/*/*"],
+      "js": ["prompt.js"]
     }
   ],
   "commands": {
@@ -53,7 +57,7 @@
     "128": "images/CSicon128.png"
   },
   "web_accessible_resources": [
-    "images/CSicon.jpg"
+    "images/CSicon102.png"
   ],
   "manifest_version": 2,
   "minimum_chrome_version": "6"
