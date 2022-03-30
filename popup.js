@@ -3,7 +3,10 @@ document.getElementById("storage").addEventListener("click", openPrintPage);
 document.getElementById("instructions").addEventListener("click", openInstructionsPage);
 document.getElementById("privacypolicy").addEventListener("click", openPrivacyPage);
 document.getElementById("editsurvey").addEventListener("click", expandSurvey);
-document.getElementById("highlight").addEventListener("click", toggleHighlight); 
+document.getElementById("highlight").addEventListener("click", toggleHighlight);
+document.getElementById("goodevil").addEventListener("click", toggleGoodEvil);
+document.getElementById("strongweak").addEventListener("click", toggleGoodEvil);
+// document.getElementById("goodevil").checked = true;
 window.onload = load_page();
 
 
@@ -15,6 +18,13 @@ function load_page() {
     else {
         document.getElementById("highlight").innerHTML = "Off";
         document.getElementById("highlighttext").innerHTML = "text highlighting";
+    }
+
+    if (getGoodEvil()) {
+        document.getElementById("goodevil").checked = true;
+    }
+    else {
+        document.getElementById("strongweak").checked = true;
     }
 
     var wealth = getLS("WEALTH");
@@ -88,13 +98,28 @@ function toggleHighlight() {
     if (getHighlight()) {  // OFF state
         document.getElementById("highlight").innerHTML = "Off";
         document.getElementById("highlighttext").innerHTML = "text highlighting";
-        setLS("highlight", "0")
+        setLS("highlight", "0");
     } else {  // ON state
         document.getElementById("highlight").innerHTML = "On";
         document.getElementById("highlighttext").innerHTML = "<mark>text highlighting</mark>";
-        setLS("highlight", "1")
+        setLS("highlight", "1");
     }
 }
+
+function toggleGoodEvil() {
+    // goodevil getting clicked
+    if (getGoodEvil()) {  // goodevil was ON, now will be OFF state
+        document.getElementById("strongweak").checked = true;
+        document.getElementById("goodevil").checked = false;
+        setLS("goodevil", "0");
+    } else {  // goodevil was OFF and now will be ON state
+        document.getElementById("strongweak").checked = false;
+        document.getElementById("goodevil").checked = true;
+        setLS("goodevil", "1");
+    }
+}
+
+
 
 function expandSurvey() {
     document.getElementById("survey").style.display = "block";
@@ -114,17 +139,28 @@ function openInstructionsPage() {
 };
 
 function setLS(key, val) {
-    localStorage["senti_" + key] = val;
+    var k = "senti_" + key;
+    chrome.storage.sync.set({k: val});
 }
 
 function getLS(key) {
-    return localStorage["senti_" + key];
+    chrome.storage.sync.get(["senti_" + key], function(resultdict){
+        return resultdict["senti_" + key];
+    });
 }
 
 function rmLS(key) {
-    localStorage.removeItem("senti_" + key);
+     chrome.storage.sync.set.remove("senti_" + key);
 }
 
 function getHighlight() {
     return parseInt(getLS("highlight"));
+}
+
+function getGoodEvil() {
+    return parseInt(getLS("goodevil"));
+}
+
+function getCount() {
+    return parseInt(getLS("sentiCount"));
 }

@@ -23,15 +23,28 @@ function updateMenuItem(id, newtitle){
 };
 
 function setLS(key, val) {
-    localStorage[PREFIX + key] = val;
+    console.log("Setting "+ key + " to " + val);
+    var k = PREFIX + key;
+    chrome.storage.sync.set( {k: val} );
 }
 
 function getLS(key) {
-    return localStorage[PREFIX + key];
+    var res = Promise
+    var k = PREFIX + key;
+    console.log("GET LS")
+    chrome.storage.sync.get(k, function(resultdict) {
+        console.log("result dict");
+        console.log(resultdict);
+        console.log(resultdict[k]);
+        return resultdict[k];
+    });
+    console.log("DONE?")
+
 }
 
 function rmLS(key) {
-    localStorage.removeItem(PREFIX + key);
+    var k = PREFIX + key;
+     chrome.storage.sync.remove(k);
 }
 
 function getCount() {
@@ -69,12 +82,15 @@ function setpos(info) {
 function setSent(highlighted, label){
     dprint("setSent() "+ label + " : " + highlighted);
     if (existing_context.includes(highlighted)) {
-        addtoLS("[" + label + "]: " + highlighted);
+        var goodevil_tag = parseInt(getLS("goodevil")) ? " GOOD_EVIL" : " STRONG_WEAK";
+        addtoLS("[" + label + goodevil_tag + "]: "  + highlighted);
         sendHighlight(label, highlighted)
      } else {
         notifyMe("Error, entity not found in context sentence.");
      }
 };
+
+
 
 function addtoLS(value){
     dprint("addtoLS() \"" + value + "\"");
@@ -124,6 +140,7 @@ function setContext(info) {
      if ( getCount() > 0 && getLS( getCount()-1 ).startsWith(CONTEXTTAG) ){
         undo();
      }
+
      addtoLS(CONTEXTTAG + highlighted);
      updateMenuItem("CON", CONTEXTTAG.substring(4) + highlighted);
      existing_context = highlighted;
@@ -150,13 +167,18 @@ function deleteSelections() {
 function stringifyLS() {
     dprint("INTERNAL STORAGE STRINGIFY: ")
     let itemlist = [];
-    let keys = Object.keys(localStorage);
-    for (var i = 0; i < getCount(); i++) {
-        key = i.toString();
-        itemlist.push( getLS(key) );
-    }
-    tosend = itemlist.join('\n');
-    chrome.extension.getBackgroundPage().console.log(tosend);
+    chrome.storage.sync.get(null, function(resultdict) {
+        let keys = Object.keys(resultdict );
+        for (var i = 0; i < getCount(); i++) {
+            key = i.toString();
+            itemlist.push( getLS(key) );
+        }
+        tosend = itemlist.join('\n');
+        chrome.extension.getBackgroundPage().console.log(tosend);
+
+
+    });
+
 };
 
 function notifyMe(words){

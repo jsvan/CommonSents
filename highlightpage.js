@@ -1,7 +1,10 @@
-var CONTEXTCOLOR = "yellow"
-var NEGCOLOR = "red"
-var POSCOLOR = "lightgreen"
-var NEUCOLOR = "lightgray"
+var STRONGWEAK = ["aureolin", "orangered", "chartreuse", "lightgray"]
+var GOODEVIL = ["green", "red", "lightgreen", "lightgray"]
+var CONTEXTCOLOR = 0;
+var NEGCOLOR = 1;
+var POSCOLOR = 2;
+var NEUCOLOR = 3;
+
 var ALERTCOLOR = "red";
 var WARNINGCOLOR = "yellow";
 var ORIGINAL_BG_COLOR = document.body.style.backgroundColor;
@@ -11,7 +14,24 @@ var NEsFoundInThisContext = new Map();
 var prevContextStart = 0;
 var prevContextEnd = 0;
 
+function get_color(which) {
+    chrome.storage.sync.get(null, function(resultdict) {
+        for (k in resultdict){
+            console.log(k);
+        }
+    })
 
+    chrome.storage.sync.get("senti_goodevil", function(resultdict){
+        var color_array = parseInt( resultdict["senti_goodevil"] ) ? GOODEVIL : STRONGWEAK;
+        console.log(which)
+        console.log("senti_goodevil:")
+        console.log(resultdict["senti_goodevil"]);
+        console.log(color_array)
+        console.log(color_array[which])
+        return color_array[which];
+    });
+
+}
 
 function setprevContextStart(num){
     prevContextStart = num;
@@ -146,10 +166,10 @@ function addContext(highlighted){
         notify(WARNINGCOLOR);
         return;
     }
-    var smark = markS(CONTEXTCOLOR);
+    var smark = markS(get_color(CONTEXTCOLOR));
     setprevContextStart(start);
     setprevContextEnd(end);
-    var newbody = highlight(CONTEXTCOLOR, prevContextStart, prevContextEnd);
+    var newbody = highlight(get_color(CONTEXTCOLOR), prevContextStart, prevContextEnd);
     document.body.innerHTML = newbody;
     NEsFoundInThisContext.clear();
 };
@@ -183,15 +203,15 @@ function addCol(highlighted, color){
 };
 
 function addPos(highlighted) {
-    addCol(highlighted, POSCOLOR);
+    addCol(highlighted, get_color(POSCOLOR));
 };
 
 function addNeg(highlighted) {
-    addCol(highlighted, NEGCOLOR);
+    addCol(highlighted, get_color(NEGCOLOR));
 };
 
 function addNeu(highlighted) {
-    addCol(highlighted, NEUCOLOR);
+    addCol(highlighted, get_color(NEUCOLOR));
 };
 
 function undo() {

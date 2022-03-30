@@ -5,19 +5,23 @@ document.getElementById("clearLS").addEventListener("click", deleteSelections);
 
 function stringifyLS() {
     let itemlist = [];
-    let keys = Object.keys(localStorage);
-    itemlist.push( "GOV_DIST" + ': '+ getLS("WEALTH"));
-    itemlist.push( "CULTURE" + ': '+ getLS("NATIONALISM"));
-    itemlist.push( "COUNTRY" + ': '+ getLS("COUNTRY"));
-    itemlist.push( "POL_LEAN" + ': '+ getLS("GROUP_IDENTITY"));
+    chrome.storage.sync.get(null, function(resultdict) {
+        let keys =  Object.keys(resultdict);
+        itemlist.push( "GOV_DIST" + ': '+ getLS("WEALTH"));
+        itemlist.push( "CULTURE" + ': '+ getLS("NATIONALISM"));
+        itemlist.push( "COUNTRY" + ': '+ getLS("COUNTRY"));
+        itemlist.push( "POL_LEAN" + ': '+ getLS("GROUP_IDENTITY"));
 
-    for (var i = 0; i < getCount(); i++) {
-        key = i.toString();
-        itemlist.push( getLS(key) );
-    }
-    tosend = itemlist.join('<br>');
-    console.log(tosend);
-    return tosend;
+        for (var i = 0; i < getCount(); i++) {
+            key = i.toString();
+            itemlist.push( getLS(key) );
+        }
+        tosend = itemlist.join('<br>');
+        console.log(tosend);
+        return tosend;
+
+    });
+
 };
 
 
@@ -32,15 +36,20 @@ function deleteSelections() {
 };
 
 function setLS(key, val) {
-    localStorage["senti_" + key] = val;
+    var k = "senti_" + key;
+     chrome.storage.sync.set({k: val});
 }
 
 function getLS(key) {
-    return localStorage["senti_" + key];
+    var k = "senti_" + key;
+    chrome.storage.sync.get(k, function(resultdict) {
+        return resultdict[k];
+    });
 }
 
 function rmLS(key) {
-    localStorage.removeItem("senti_" + key);
+    var k = "senti_";
+     chrome.storage.sync.remove(k);
 }
 
 function getCount() {

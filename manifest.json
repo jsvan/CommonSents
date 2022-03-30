@@ -2,7 +2,7 @@
   "name": "Common Sents",
   "version": "1.07",
   "description": "Help Julian locate sentiment-charged sentences while you read your morning news.",
-  "permissions": ["contextMenus", "activeTab", "notifications"],
+  "permissions": ["storage", "contextMenus", "activeTab", "notifications"],
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
