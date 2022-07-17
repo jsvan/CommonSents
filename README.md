@@ -1,8 +1,5 @@
 # CommonSents
-
-*( This is the latest version of Common Sents if you want the best black market app available. )*
-
-
+This chrome plugin allows you to highlight sentences and annotate interior keywords as Pos/Neg/Neu with hotkeys and a right-click dropdown menu. It functions over all websites. The annotations are stored in localstorage. The user then copy/pastes the formatted contents into an email and sends it to my automated account. TODO is to get the app to auto email the storage. 
 
 # **Welcome to Julian's Common Sents, the media sentiment collector!**
 
