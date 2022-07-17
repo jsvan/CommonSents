@@ -1,6 +1,17 @@
 # CommonSents
 This chrome plugin allows you to highlight sentences and annotate interior keywords as Pos/Neg/Neu with hotkeys and a right-click dropdown menu. It functions over all websites. The annotations are stored in localstorage. The user then copy/pastes the formatted contents into an email and sends it to my automated account. TODO is to get the app to auto email the storage. 
 
+Example of annotation with dropdown menu:
+![image](https://user-images.githubusercontent.com/9337973/179419169-5642f4bc-7cd6-410f-a144-10ae15422642.png)
+
+Visual queues on what you've annotated appear as so:
+![image](https://user-images.githubusercontent.com/9337973/179419205-dacffd0e-5418-4e77-83c1-130941409af0.png)
+
+Hotkeys:
+![image](https://user-images.githubusercontent.com/9337973/179419213-b5869143-c408-4ee5-9402-c52f7a127319.png)
+
+
+
 # **Welcome to Julian's Common Sents, the media sentiment collector!**
 
 
