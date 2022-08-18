@@ -1,5 +1,5 @@
 # CommonSents
-This chrome plugin allows you to highlight sentences and annotate interior keywords as Pos/Neg/Neu with hotkeys and a right-click dropdown menu. It functions over all websites. The annotations are stored in localstorage. The user then copy/pastes the formatted contents into an email and sends it to my automated account. TODO is to get the app to auto email the storage. 
+This chrome plugin allows you to highlight sentences and annotate interior keywords as Pos/Neg/Neu with hotkeys and a right-click dropdown menu. It functions over all websites. The annotations are stored in localstorage. The user then copy/pastes the formatted contents into an email and sends it to my automated account. This app collected enough data within two weeks to train BERT models on a sentiment task. I needed this data because no dataset available provided fine grained sentiment analysis on real world news-media text. TODO to update the app to allow annotating two different tasks at once. TODO is to get the app to auto email the storage. 
 
 Example of annotation with dropdown menu:
 ![image](https://user-images.githubusercontent.com/9337973/179419169-5642f4bc-7cd6-410f-a144-10ae15422642.png)
