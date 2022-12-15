@@ -12,7 +12,7 @@ Hotkeys:
 
 
 
-# **Welcome to Julian's Common Sents, the media sentiment collector!**
+# **Welcome to Common Sents, the media sentiment collector!**
 
 
 ## Please take a moment to acquaint yourself with the idea behind my project and the How-Tos by reading through the following short presentations.
@@ -40,7 +40,7 @@ Hotkeys:
 
 <div style="padding: 20px;">
 
-Welcome! This is a tool primarily to help Julian collect a dataset. The first slides introduce what he's doing and why this is a great project.
+Welcome! This is a tool primarily to help me collect a dataset. The first slides introduce what he's doing and why this is a great project.
 
 It should also be helpful to you as an educational tool. At your discretion, you will begin to slow down and process what you are reading in a new way. You will analyze the sentences and look for sentiment queues which have been inserted to mold your opinion on the given topic at a deeper level than you may otherwise consciously notice.
 
